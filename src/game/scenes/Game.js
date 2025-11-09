@@ -118,9 +118,46 @@ export class Game extends Scene {
         this.bgFour.setDepth(-3);
         this.bgFive.setDepth(-2);
         this.bgSix.setDepth(-1);
+
+        // === TIMER STYLE "OUTRUN" ===
+        this.timeTotal = 10000; // 10 segundos em ms
+        this.timeRemaining = this.timeTotal;
+        this.timeDisplay = 0; // segundos inteiros para exibir
+
+        this.timerText = this.add.text(650, 20, "TIME: 10", {
+            fontFamily: "Arial",
+            fontSize: "32px",
+            fontStyle: "bold",
+            color: "#fff",
+        });
+        this.timerText.setDepth(1000);
+
     }
 
     update(time, delta) {
+        this.timeRemaining -= delta;
+
+        const newDisplay = Math.max(0, Math.floor(this.timeRemaining / 1000));
+
+        if (newDisplay !== this.timeDisplay) {
+            this.timeDisplay = newDisplay;
+            this.timerText.setText(`TIME: ${this.timeDisplay}`);
+
+            // efeito pulse igual arcade
+            this.timerText.setScale(1.25);
+            this.tweens.add({
+                targets: this.timerText,
+                scale: 1,
+                duration: 120,
+                ease: "Quad.easeOut"
+            });
+
+            if (this.timeDisplay <= 0) {
+                this.handleTimeUp();
+            }
+        }
+
+
         const curve = this.gameState.road.curve || 0;
         const camX = this.camera.x || 0;
 
@@ -271,6 +308,14 @@ export class Game extends Scene {
             segments.push(seg);
         }
     }
+
+    handleTimeUp() {
+    console.log("⏳ GAME OVER — Time Up!");
+
+    this.scene.pause();
+    this.scene.launch("GameOver");
+}
+
 }
 
 function drawSegment(g, p1Point, p2Point, color, screenWidth = 800, lanes = 3) {
